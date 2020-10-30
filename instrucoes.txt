@@ -1,0 +1,46 @@
+
+
+instalando o express de modo global
+npm install express-generator -g
+
+executar o comando para criar o projeto utilizando o express
+express --ejs saboroso
+
+acessar a pasta do projeto e instalar as dependências
+npm install
+
+executa o serviço na porta 3000 (http://localhost:3000/)
+set DEBUG=saboroso:* & npm start
+
+baixamos o template a ser utilizado no servidor 
+descompactar e colocar na pasta public do projeto criado 
+\saboroso\public
+
+acessar a pasta admin e executar o comando para o bower 
+atualizar as dependências do frontend (\saboroso\public\admin)
+bower install
+
+instalar o mysql (desenvolvimento)
+https://dev.mysql.com/downloads/file/?id=499590
+senha user root:    admin
+user:               user
+password:           pass
+rodei o script para criar o banco e tabelas 
+criei o usuário no banco e rodei os scripts abaixo para não ocorrer problemas na conexão do node
+ALTER USER 'user'@'%'          IDENTIFIED WITH mysql_native_password BY 'pass';
+ALTER USER 'user'@'localhost'  IDENTIFIED WITH mysql_native_password BY 'pass';
+ALTER USER 'user'@'127.0.0.1'  IDENTIFIED WITH mysql_native_password BY 'pass';
+
+instalar o pacote para utilização do mysql no node, vinculando a dependência ao projeto 
+https://www.npmjs.com/package/mysql2
+npm install mysql2 --save
+
+alteramos o package.json para startar a aplicação com o nodemon
+se não tiver instalado, só instalar: npm install nodemon -g
+"scripts": 
+{
+    "start": "nodemon ./bin/www"
+},
+
+iremos utilizar o "EJS"
+https://ejs.co/
