@@ -1,7 +1,9 @@
-var conn    = require('./../inc/db');
-var express = require('express');
-var router  = express.Router();
-var menus   = require('./../inc/menus');
+var conn         = require('./../inc/db');
+var express      = require('express');
+var router       = express.Router();
+var menus        = require('./../inc/menus');
+var reservations = require('./../inc/reservations');
+var contacts     = require('./../inc/contacts');
 
 router.get('/', function(req, res, next) 
 {
@@ -21,12 +23,9 @@ router.get('/', function(req, res, next)
 
 router.get("/contacts", function(req, res, next)
 {
-    res.render('contacts', 
-    { 
-       title: "Contatos",
-       background: "images/img_bg_3.jpg",
-       h1: "Diga um Oi!"
-    });
+
+   contacts.render(req, res);
+
 });
 
 router.get("/menus", function(req, res, next)
@@ -49,13 +48,111 @@ router.get("/menus", function(req, res, next)
 
 router.get("/reservations", function(req, res, next)
 {
-    res.render('reservations', 
-    { 
-       title: "Reservas",
-       background: "images/img_bg_2.jpg",
-       h1: "Reserve uma Mesa!"
-    });
+
+   reservations.render(req, res);
+
 });
+
+router.post("/reservations", function(req, res, next)
+{
+
+    // res.send(req.body);
+    /*
+      {
+      "name": "Anderson Rocha",
+      "email": "andersonrocha1979@gmail.com",
+      "people": "2",
+      "date": "06/11/2020",
+      "time": "20:00"
+      }        
+    */
+
+   if (!req.body.name)
+   {
+      reservations.render(req, res, "Digite o nome");
+   }
+   else if (!req.body.email)
+   {
+      reservations.render(req, res, "Digite o e-mail");
+   }
+   else if (!req.body.people)
+   {
+      reservations.render(req, res, "Digite o número de pessoas");
+   }
+   else if (!req.body.date)
+   {
+      reservations.render(req, res, "Informe a data para reserva");
+   }
+   else if (!req.body.time)
+   {
+      reservations.render(req, res, "Informe a hora para reserva");
+   }
+   else
+   {
+      reservations.save(req.body).then(results =>
+      {
+
+         // registro incluído com sucesso
+         // zera o body para apagar os dados digitados pelo usuário
+         req.body = {};
+
+         // renderiza a página com os novos parâmetros
+         reservations.render(req, res, null, "Reserva realizada com Sucesso");
+
+      }).catch( err =>
+      {
+         // se ocorrer algum erro, exibe ao usuário
+         reservations.render(req, res, err.message, null);
+      });   
+   }
+
+});
+
+router.post("/contacts", function(req, res, next)
+{
+
+    // res.send(req.body);
+    /*
+      {
+      "name": "Anderson Rocha",
+      "email": "andersonrocha1979@gmail.com",
+      "message": "mensagem"
+      }        
+    */
+
+   if (!req.body.name)
+   {
+      contacts.render(req, res, "Digite o nome");
+   }
+   else if (!req.body.email)
+   {
+      contacts.render(req, res, "Digite o e-mail");
+   }
+   else if (!req.body.message)
+   {
+      contacts.render(req, res, "Digite a mensagem");
+   }
+   else
+   {
+      contacts.save(req.body).then(results =>
+      {
+
+         // registro incluído com sucesso
+         // zera o body para apagar os dados digitados pelo usuário
+         req.body = {};
+
+         // renderiza a página com os novos parâmetros
+         contacts.render(req, res, null, "Mensagem enviada com sucesso!");
+
+      }).catch( err =>
+      {
+         // se ocorrer algum erro, exibe ao usuário
+         contacts.render(req, res, err.message, null);
+      });   
+   }
+
+});
+
 
 router.get("/services", function(req, res, next)
 {

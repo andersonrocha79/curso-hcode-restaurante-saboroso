@@ -1,4 +1,7 @@
-
+ajuda do tema utilizado
+https://adminlte.io/themes/v3/
+https://adminlte.io/themes/v3/pages/UI/general.html
+https://github.com/ColorlibHQ/AdminLTE
 
 instalando o express de modo global
 npm install express-generator -g

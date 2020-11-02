@@ -1,0 +1,17 @@
+
+<% if (typeof error === "string") { %>
+
+    <div class="alert alert-danger">
+        <h5>Validação!</h5>
+        <p><%= error %></p>
+    </div>
+
+<% } %>
+
+<% if (typeof success === "string") { %>
+
+    <div class="alert alert-success">
+        <p><%= success %></p>
+    </div>
+
+<% } %>    
