@@ -47,3 +47,7 @@ se não tiver instalado, só instalar: npm install nodemon -g
 
 iremos utilizar o "EJS"
 https://ejs.co/
+
+instalar o controle de sessão do 'node.js'
+npm install --save redis connect-redis express-session
+após esta instalação, instalar o banco de dados Redis (https://github.com/MicrosoftArchive/redis)
