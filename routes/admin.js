@@ -1,5 +1,6 @@
 var express = require("express");
 var users   = require("./../inc/users");
+var admin   = require("./../inc/admin");
 var router  = express.Router();
 
 // middeware para avaliar se o usuário já fez login
@@ -36,7 +37,18 @@ router.use(function (req, res, next)
         
     }
     
+});
 
+// midleware para incluir o array 'menus' em todas
+// as chamadas a rota 'admin'
+// este array tem as opções do menu lateral da página admin
+router.use(function(req, res, next)
+{
+    // armazena o array de menus na requisição
+    // passa como parâmetro a url atual, para definir qual o menu ativo
+    req.menus = admin.getMenus(req);
+    // vai para o próximo midleware ou próxima rota
+    next();
 });
 
 router.get("/logout", function(req, res, next)
@@ -51,7 +63,7 @@ router.get("/logout", function(req, res, next)
 router.get("/", function(req, res, next)
 {
 
-    res.render("admin/index");
+    res.render("admin/index", {menus: req.menus});
 
 });
 
@@ -97,9 +109,9 @@ router.get("/login", function(req, res, next)
 router.get("/contacts", function(req, res, next)
 {
 
-    res.render("admin/contacts",
+    res.render("admin/contacts", 
     {
-        
+        menus: req.menus
     });
 
 });
@@ -107,9 +119,9 @@ router.get("/contacts", function(req, res, next)
 router.get("/emails", function(req, res, next)
 {
 
-    res.render("admin/emails",
+    res.render("admin/emails", 
     {
-        
+        menus: req.menus
     });
 
 });
@@ -117,9 +129,9 @@ router.get("/emails", function(req, res, next)
 router.get("/menus", function(req, res, next)
 {
 
-    res.render("admin/menus",
+    res.render("admin/menus", 
     {
-        
+        menus: req.menus
     });
 
 });
@@ -129,6 +141,7 @@ router.get("/reservations", function(req, res, next)
 
     res.render("admin/reservations",
     {
+        menus: req.menus,
         date: {}
     });
 
@@ -139,7 +152,7 @@ router.get("/users", function(req, res, next)
 
     res.render("admin/users",
     {
-        
+        menus: req.menus
     });
 
 });
