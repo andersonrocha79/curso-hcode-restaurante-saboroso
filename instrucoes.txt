@@ -51,3 +51,6 @@ https://ejs.co/
 instalar o controle de sessão do 'node.js'
 npm install --save redis connect-redis express-session
 após esta instalação, instalar o banco de dados Redis (https://github.com/MicrosoftArchive/redis)
+
+instalar o módulo para tratar dados de formulários
+npm install formidable --save

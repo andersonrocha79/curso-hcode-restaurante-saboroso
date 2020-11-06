@@ -3,6 +3,9 @@ var express       = require('express');
 var path          = require('path');
 var cookieParser  = require('cookie-parser');
 var logger        = require('morgan');
+var formidable    = require('formidable');
+var path          = require('path');
+
 
 var redis         = require('redis')
 var session       = require('express-session')
@@ -12,6 +15,48 @@ var indexRouter   = require('./routes/index');
 var adminRouter   = require('./routes/admin');
 
 var app           = express();
+
+// cria um middleware para interceptar
+// as chamadas ao servidor que sejam referente
+// envio de formulários
+// esta função irá tratar os campos e arquivos anexos
+// enviados pelos formulários
+app.use(function (req, res, next)
+{
+
+   // só passa pelo middeware se for uma requisição 'POST'
+   // que possa ter algum formulário de dados enviado
+   if (req.method === 'POST')
+   {
+
+      var form = formidable.IncomingForm(
+      {
+         uploadDir: path.join(__dirname, "/public/images"),
+         keepExtensions: true
+      });
+
+      form.parse(req, function(err, fields, files)
+      {
+
+         // inclui na chamada 'req'
+         // os campos e arquivos já extraídos pelo 'formidable'
+         req.body   = fields;
+         req.fields = fields;
+         req.files  = files;
+
+         // vai para o próximo middeware ou próxima rota
+         next();
+
+      });
+
+   }
+   else
+   {
+      // vai para o próximo
+      next();
+   }
+
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -39,7 +84,7 @@ app.use( session (
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 

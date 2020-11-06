@@ -144,6 +144,7 @@ router.get("/menus", function(req, res, next)
     }).catch(err =>
     {
        console.log(err) 
+       res.render(err);
     });
 
 });
@@ -151,7 +152,39 @@ router.get("/menus", function(req, res, next)
 router.post("/menus", function(req, res, next)
 {
 
-    res.send(req.body);
+    // o campo 'fields' da requisição
+    // foi gerado pelo 'formidable'
+    // no app.js, através de um midleware
+    // req.fields
+
+    menus.save(req.fields, req.files).then(results =>
+    {
+        console.log("/menus > post", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/menus > post > error: ", err);
+        res.send(err);
+    });    
+    
+});
+
+router.delete("/menus/:id", function(req, res, next)
+{
+
+    // para receber o código enviado no parametro
+
+    menus.delete(req.params.id).then(results =>
+    {
+        console.log("/menus > post", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/menus > delete > error: ", err);
+        res.send(err);
+    });    
     
 });
 

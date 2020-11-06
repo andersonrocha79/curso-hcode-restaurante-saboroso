@@ -45,7 +45,7 @@
                     <td><%= row.title %></td>
                     <td><%= row.description %></td>
                     <td>R$ <%= row.price %> </td>
-                    <td><button type="button" class="btn btn-xs btn-info btn-update" data-toggle="modal" data-target="#modal-update"><i
+                    <td><button type="button" class="btn btn-xs btn-info btn-update" ><i
                           class="fa fa-pencil"></i> Editar</button>&nbsp;<button type="button" class="btn btn-xs btn-danger btn-delete"><i
                           class="fa fa-trash"></i> Excluir</button></td>
                   </tr>
@@ -66,7 +66,7 @@
     <div class="modal fade" id="modal-create">
       <div class="modal-dialog">
         <div class="modal-content" style="border-top: 3px solid #00a65a;">
-          <form method="post">
+          <form method="post" action="/admin/menus">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -106,7 +106,7 @@
     <div class="modal fade" id="modal-update">
       <div class="modal-dialog">
         <div class="modal-content" style="border-top: 3px solid #00c0ef;">
-          <form method="post">
+          <form method="post" action="/admin/menus">
             <input type="hidden" name="id">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -146,30 +146,148 @@
 
 <%- include("inc/footer") -%>  
 
+<script src="/js/hcode-filereader.js"></script>
+<script src="/js/hcode-formsave.js"></script>
+
 <script>
 
-   let formCreate     = document.querySelector("#modal-create form");   
+   new HcodeFileReader("#modal-create [type=file]", "#modal-create img");
+   new HcodeFileReader("#modal-update [type=file]", "#modal-update img");
 
-   formCreate.addEventListener('submit', e =>
+   let formCreate = document.querySelector("#modal-create form");   
+
+   // método para 'salvar' os dados do formulário
+   // método save incluído nos elementos 'form'
+   // a partir do prototype
+   // arquivo public\js\hcode-formsave
+
+   formCreate.save().then(json =>
+   {
+      // se o envio do formulário de 'sucesso' 
+      // força a atualização da página no final
+      console.log("registro incluído > ", json);
+      window.location.reload();
+      // window.location.href = window.location.href;
+
+   }).catch( err =>
+   {
+      // se der erro, mostra no log por enquanto
+      console.log(err);
+   });
+
+   // faz referência ao formulário de atualização de registros
+   let formUpdate = document.querySelector("#modal-update form");
+
+   formUpdate.save().then(json =>
+   {
+      // se o envio do formulário de 'sucesso' 
+      // força a atualização da página no final
+      console.log("registro alterado > ", json);
+      window.location.reload();
+      //window.location.href = window.location.href;
+
+   }).catch( err =>
+   {
+      // se der erro, mostra no log por enquanto
+      console.log(err);
+   });
+
+
+   // método para 'salvar' os dados do formulário
+
+   // busca todos os botões de 'alterar' e define o evento 
+   // converte em array
+   [...document.querySelectorAll('.btn-update')].forEach(btn =>
    {
 
-      e.preventDefault();
-
-      let formCreateData = new FormData(formCreate);
-
-      fetch("/admin/menus",
+      btn.addEventListener('click', e =>      
       {
-        method: "POST",
-        body: formCreateData
-      })
-      .then(response => response.json())
-      .then(json =>
-      {
+         // procura no array que tem a lista
+         // de elementos pais do item atual
+         // retorna o elemento pai que seja uma 'TR'
+         let tr = e.path.find(el =>
+         {
+           return (el.tagName.toUpperCase() === 'TR');
+         });
+
+         let data = JSON.parse(tr.dataset.row);
+
+         console.log(data);
+
+         // percorre os campos do json         
+         for (let name in data)
+         {
+
+            // procura no formulário o campo com o mesmo nome
+            // do campo json e define o valor
+            switch (name)
+            {
+
+              case 'photo':
+                 formUpdate.querySelector("img").src = "/" + data[name];
+              break;
+
+              default:
+
+                let input = formUpdate.querySelector(`[name=${name}]`);
+
+                if (input)
+                {
+                   input.value = data[name];
+                }
+
+            }
+
+            
+         }
+
+         // após preencher os campos do formulário
+         // exibe o modal
+         $('#modal-update').modal('show');
 
       });
 
    });
 
+   // busca todos os botões de 'excluir' e define o evento 
+   // converte em array
+   [...document.querySelectorAll('.btn-delete')].forEach(btn =>
+   {
+
+      btn.addEventListener('click', e =>      
+      {
+
+         // procura no array que tem a lista
+         // de elementos pais do item atual
+         // retorna o elemento pai que seja uma 'TR'
+         let tr = e.path.find(el =>
+         {
+           return (el.tagName.toUpperCase() === 'TR');
+         });
+
+         let data = JSON.parse(tr.dataset.row);
+
+         console.log("registro para exclusão", data.id);
+
+        // pede confirmação ao usúario
+        if (confirm(`Deseja realmente excluir o registro "${data.title}"?`))
+        {
+
+          // faz a chamada 'ajax' para execução do comando no servidor
+          fetch(`/admin/menus/${data.id}`,
+          {
+            method: 'DELETE'
+          })
+          .then(response => response.json())
+          .then(json => 
+          {
+            window.location.reload();
+          });
+        }
+            
+      });
+
+   });
 
 
 </script>
