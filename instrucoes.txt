@@ -54,3 +54,6 @@ após esta instalação, instalar o banco de dados Redis (https://github.com/Mic
 
 instalar o módulo para tratar dados de formulários
 npm install formidable --save
+
+instalar o módulo para formatação de datas
+npm install moment --save

@@ -1,8 +1,13 @@
-var express = require("express");
-var users   = require("./../inc/users");
-var admin   = require("./../inc/admin");
-var menus   = require("./../inc/menus");
-var router  = express.Router();
+var express      = require("express");
+var users        = require("./../inc/users");
+var admin        = require("./../inc/admin");
+var menus        = require("./../inc/menus");
+var reservations = require("./../inc/reservations");
+var moment       = require("moment");
+var router       = express.Router();
+
+// Define a região para o moment
+moment.locale("pt-BR");
 
 // middeware para avaliar se o usuário já fez login
 // antes de conseguir executar as outras rotas
@@ -133,6 +138,8 @@ router.get("/emails", function(req, res, next)
 
 });
 
+// *** MENUS ****************************************************************************
+
 router.get("/menus", function(req, res, next)
 {
 
@@ -188,12 +195,69 @@ router.delete("/menus/:id", function(req, res, next)
     
 });
 
+
+// *** RESERVATIONS **********************************************************************
+
 router.get("/reservations", function(req, res, next)
 {
 
-    res.render("admin/reservations", admin.getParams(req, {date: {}}));
+    reservations.getReservations()
+    .then(data =>
+    {
+
+        res.render("admin/reservations", admin.getParams(req, {date: {}, data: data, moment } ));
+
+    }).catch(err =>
+    {
+        console.log(err) 
+        res.render(err);
+    });
+    
 
 });
+
+router.post("/reservations", function(req, res, next)
+{
+
+    // o campo 'fields' da requisição
+    // foi gerado pelo 'formidable'
+    // no app.js, através de um midleware
+    // req.fields
+
+    reservations.save(req.fields, req.files).then(results =>
+    {
+        console.log("/reservations > post", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/reservations > post > error: ", err);
+        res.send(err);
+    });    
+    
+});
+
+router.delete("/reservations/:id", function(req, res, next)
+{
+
+    // para receber o código enviado no parametro
+
+    reservations.delete(req.params.id).then(results =>
+    {
+        console.log("/reservations > delete", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/reservations > delete > error: ", err);
+        res.send(err);
+    });    
+    
+});
+
+
+
+// *** USERS ****************************************************************************
 
 router.get("/users", function(req, res, next)
 {
