@@ -148,146 +148,37 @@
 
 <script src="/js/hcode-filereader.js"></script>
 <script src="/js/hcode-formsave.js"></script>
+<script src="/js/hcode-grid.js"></script>
 
 <script>
 
    new HcodeFileReader("#modal-create [type=file]", "#modal-create img");
    new HcodeFileReader("#modal-update [type=file]", "#modal-update img");
 
-   let formCreate = document.querySelector("#modal-create form");   
-
-   // método para 'salvar' os dados do formulário
-   // método save incluído nos elementos 'form'
-   // a partir do prototype
-   // arquivo public\js\hcode-formsave
-
-   formCreate.save().then(json =>
+   new HCodeGrid(
    {
-      // se o envio do formulário de 'sucesso' 
-      // força a atualização da página no final
-      console.log("registro incluído > ", json);
-      window.location.reload();
-      // window.location.href = window.location.href;
-
-   }).catch( err =>
-   {
-      // se der erro, mostra no log por enquanto
-      console.log(err);
-   });
-
-   // faz referência ao formulário de atualização de registros
-   let formUpdate = document.querySelector("#modal-update form");
-
-   formUpdate.save().then(json =>
-   {
-      // se o envio do formulário de 'sucesso' 
-      // força a atualização da página no final
-      console.log("registro alterado > ", json);
-      window.location.reload();
-      //window.location.href = window.location.href;
-
-   }).catch( err =>
-   {
-      // se der erro, mostra no log por enquanto
-      console.log(err);
-   });
-
-
-   // método para 'salvar' os dados do formulário
-
-   // busca todos os botões de 'alterar' e define o evento 
-   // converte em array
-   [...document.querySelectorAll('.btn-update')].forEach(btn =>
-   {
-
-      btn.addEventListener('click', e =>      
+      deleteUrl  : 'menus/${data.id}',
+      deleteMsg  : '"Deseja realmente excluir o menu "${data.title}" ?',
+      onUpdateLoad: (form, name, data) =>
       {
-         // procura no array que tem a lista
-         // de elementos pais do item atual
-         // retorna o elemento pai que seja uma 'TR'
-         let tr = e.path.find(el =>
-         {
-           return (el.tagName.toUpperCase() === 'TR');
-         });
 
-         let data = JSON.parse(tr.dataset.row);
-
-         console.log(data);
-
-         // percorre os campos do json         
-         for (let name in data)
-         {
-
-            // procura no formulário o campo com o mesmo nome
-            // do campo json e define o valor
-            switch (name)
-            {
-
-              case 'photo':
-                 formUpdate.querySelector("img").src = "/" + data[name];
+        let input = form.querySelector(`[name=${name}]`);
+        
+        // procura no formulário o campo com o mesmo nome
+        // do campo json e define o valor
+        switch (name)
+        {
+         
+          case 'photo':
+              form.querySelector("img").src = '/' + data[name];
               break;
 
-              default:
+          default:
+              if (input) input.value = data[name];
 
-                let input = formUpdate.querySelector(`[name=${name}]`);
-
-                if (input)
-                {
-                   input.value = data[name];
-                }
-
-            }
-
-            
-         }
-
-         // após preencher os campos do formulário
-         // exibe o modal
-         $('#modal-update').modal('show');
-
-      });
-
-   });
-
-   // busca todos os botões de 'excluir' e define o evento 
-   // converte em array
-   [...document.querySelectorAll('.btn-delete')].forEach(btn =>
-   {
-
-      btn.addEventListener('click', e =>      
-      {
-
-         // procura no array que tem a lista
-         // de elementos pais do item atual
-         // retorna o elemento pai que seja uma 'TR'
-         let tr = e.path.find(el =>
-         {
-           return (el.tagName.toUpperCase() === 'TR');
-         });
-
-         let data = JSON.parse(tr.dataset.row);
-
-         console.log("registro para exclusão", data.id);
-
-        // pede confirmação ao usúario
-        if (confirm(`Deseja realmente excluir o registro "${data.title}"?`))
-        {
-
-          // faz a chamada 'ajax' para execução do comando no servidor
-          fetch(`/admin/menus/${data.id}`,
-          {
-            method: 'DELETE'
-          })
-          .then(response => response.json())
-          .then(json => 
-          {
-            window.location.reload();
-          });
         }
-            
-      });
 
+      }
    });
-
 
 </script>
