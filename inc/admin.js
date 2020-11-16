@@ -85,7 +85,7 @@ module.exports =
                 active: false
             },
             {
-                text: "E-mails",
+                text: "e-mails",
                 href: "/admin/emails",
                 icon: "envelope",
                 active: false

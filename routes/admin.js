@@ -3,6 +3,8 @@ var users        = require("./../inc/users");
 var admin        = require("./../inc/admin");
 var menus        = require("./../inc/menus");
 var reservations = require("./../inc/reservations");
+var contacts     = require("./../inc/contacts");
+var emails       = require("./../inc/emails");
 var moment       = require("moment");
 var router       = express.Router();
 
@@ -124,19 +126,67 @@ router.get("/login", function(req, res, next)
 
 });
 
+// *** CONTATOS ****************************************************************************
+
 router.get("/contacts", function(req, res, next)
 {
 
-    res.render("admin/contacts", admin.getParams(req));
+    contacts.getContacts().then(data=>
+    {
+        res.render("admin/contacts", admin.getParams(req, { data }));
+    });    
 
 });
+
+router.delete("/contacts/:id", function(req, res, next)
+{
+
+    // para receber o código enviado no parametro
+
+    contacts.delete(req.params.id).then(results =>
+    {
+        console.log("/contacts > delete", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/contacts > delete > error: ", err);
+        res.send(err);
+    });    
+    
+});
+
+// *** EMAILS ****************************************************************************
+
 
 router.get("/emails", function(req, res, next)
 {
 
-    res.render("admin/emails", admin.getParams(req));
+    emails.getEmails().then(data=>
+    {
+        res.render("admin/emails", admin.getParams(req, { data }));
+    });        
 
 });
+
+router.delete("/emails/:id", function(req, res, next)
+{
+
+    // para receber o código enviado no parametro
+
+    emails.delete(req.params.id).then(results =>
+    {
+        console.log("/emails > delete", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/emails > delete > error: ", err);
+        res.send(err);
+    });    
+    
+});
+
 
 // *** MENUS ****************************************************************************
 
@@ -262,9 +312,73 @@ router.delete("/reservations/:id", function(req, res, next)
 router.get("/users", function(req, res, next)
 {
 
-    res.render("admin/users", admin.getParams(req));
+    users.getUsers().then(data =>
+    {
+
+        res.render("admin/users", admin.getParams(req, {data: data} ));
+
+    }).catch(err =>
+    {
+        console.log(err) 
+        res.render(err);
+    });
+    
 
 });
 
+router.post("/users", function(req, res, next)
+{
+
+    // o campo 'fields' da requisição
+    // foi gerado pelo 'formidable'
+    // no app.js, através de um midleware
+    // req.fields
+
+    users.save(req.fields, req.files).then(results =>
+    {
+        console.log("/users > post", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/users > post > error: ", err);
+        res.send(err);
+    });    
+    
+});
+
+router.delete("/users/:id", function(req, res, next)
+{
+
+    // para receber o código enviado no parametro
+
+    users.delete(req.params.id).then(results =>
+    {
+        console.log("/users > delete", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/users > delete > error: ", err);
+        res.send(err);
+    });    
+    
+});
+
+
+router.post("/users/password-change", function(req, res, next)
+{
+    users.changePassword(req).then(results =>
+    {
+        console.log("/users > password change", results);
+        res.send(results);        
+    })
+    .catch(err =>
+    {
+        console.log("/users > password change > error: ", err);
+        res.send({error: err});
+    });    
+
+})
 
 module.exports = router;

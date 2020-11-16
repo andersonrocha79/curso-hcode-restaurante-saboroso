@@ -44,16 +44,19 @@ class HCodeGrid
                         {
                             formCreate : "#modal-create form",
                             formUpdate : "#modal-update form",
-                            btnUpdate  : ".btn-update",
-                            btnDelete  : ".btn-delete"                                                      
+                            btnUpdate  : "btn-update",
+                            btnDelete  : "btn-delete"   ,
+                            onUpdateLoad : (form, name, data) =>
+                            {
+                                let input = form.querySelector('[name='+name+']');
+                                if (input) input.value = data[name];
+                            }
                         },
                         configs);       
-
-        // faz referência ao formulário 'modal' de edição
-        this.formUpdate = document.querySelector(this.options.formUpdate);
-
-        // faz referência ao formulário 'modal' de inclusão
-        this.formCreate = document.querySelector(this.options.formCreate);                              
+                        
+        // busca todas as linhas da tabela
+        // utiliza o spread para converter em array
+        this.rows       = [...document.querySelectorAll('table tbody tr')];
 
         // configura os formulários para 'inclusão' e 'alteração'
         this.initForms();
@@ -78,39 +81,63 @@ class HCodeGrid
     initForms()
     {
 
+        // faz referência ao formulário 'modal' de inclusão
+        this.formCreate = document.querySelector(this.options.formCreate);                              
+
+
         // método para 'salvar' os dados do formulário
         // método save incluído nos elementos 'form'
         // a partir do prototype
         // arquivo public\js\hcode-formsave
-    
-        this.formCreate.save().then(json =>
+
+        // verifica se existe botão 'novo'
+        if (this.formCreate)
         {
-            // se o envio do formulário de 'sucesso' 
-            // força a atualização da página no final
-            console.log("registro incluído > ", json);            
-            // window.location.href = window.location.href;
-            // dispara o evento
-            this.fireEvent("afterFormCreate");
     
-        }).catch( err =>
+            this.formCreate.save(
+            {
+                success: () =>
+                {
+                    // se o envio do formulário de 'sucesso' 
+                    // força a atualização da página no final
+                    console.log("registro incluído");
+                    // window.location.href = window.location.href;
+                    // dispara o evento
+                    this.fireEvent("afterFormCreate");
+                },
+                failure: () =>
+                {
+                    // se der erro, mostra no log por enquanto
+                    this.fireEvent("afterFormCreateError");
+                }
+            });
+        }
+
+
+        // faz referência ao formulário 'modal' de edição
+        this.formUpdate = document.querySelector(this.options.formUpdate);
+
+        // verifica se existe botão 'editar'
+        if (this.formUpdate)
         {
-            // se der erro, mostra no log por enquanto
-            this.fireEvent("afterFormCreateError");
-        });
         
-        this.formUpdate.save().then(json =>
-        {
-            // se o envio do formulário de 'sucesso' 
-            // força a atualização da página no final
-            console.log("registro alterado > ", json);
-            this.fireEvent("afterFormUpdate");
-            //window.location.href = window.location.href;
-    
-        }).catch( err =>
-        {
-            // se der erro, mostra no log por enquanto
-            this.fireEvent("afterFormUpdateError");
-        });
+            this.formUpdate.save(
+            {
+                success: () =>
+                {
+                    // se o envio do formulário de 'sucesso' 
+                    // força a atualização da página no final
+                    console.log("registro alterado");
+                    this.fireEvent("afterFormUpdate");
+                    //window.location.href = window.location.href;
+                },
+                failure: () =>
+                {
+                    // se der erro, mostra no log por enquanto
+                    this.fireEvent("afterFormUpdateError");
+                }
+            });
+        }
 
     }
 
@@ -129,85 +156,96 @@ class HCodeGrid
 
     }
 
+    btnUpdateClick(e)
+    {
+
+        // executa o evento na tela que utiliza o componente
+        // this.options.listeners.beforeUpdateClick(e);
+        this.fireEvent('beforeUpdateClick', [e]);
+
+        // retorna os dados do 'tr' clicado
+        let data = this.getTrData(e);
+
+        // percorre os campos do json         
+        for (let name in data)
+        {
+
+            // executa o evento
+            this.options.onUpdateLoad(this.formUpdate, name, data);
+                            
+        }    
+
+        // executa o evento na tela que utiliza o componente
+        // this.options.listeners.afterUpdateClick(e);
+        this.fireEvent('afterUpdateClick', [e]);
+
+    }
+
+    btnDeleteClick(e)
+    {
+
+        this.fireEvent("beforeDeleteClick");
+        
+        // procura no array que tem a lista
+        // de elementos pais do item atual
+        // retorna o elemento pai que seja uma 'TR'
+        let data = this.getTrData(e);
+
+        console.log("registro para exclusão", data.id);
+        
+        // pede confirmação ao usúario
+        if (confirm(eval('`' + this.options.deleteMsg + '`')))
+        {
+
+            console.log("exclusão: ", this.options.deleteUrl);
+
+            // faz a chamada 'ajax' para execução do comando no servidor
+            fetch(eval('`' + this.options.deleteUrl + '`'),
+            {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(json => 
+            {
+                // excuta o evento
+                this.fireEvent("afterDeleteClick");                    
+            });
+
+        }
+            
+    }
+
     initButtons()
     {    
-    
-        // método para 'salvar' os dados do formulário
-    
-        // busca todos os botões de 'alterar' e define o evento 
-        // converte em array
-        [...document.querySelectorAll(this.options.btnUpdate)].forEach(btn =>
+
+        // procura todos os 'botões' da linha
+        this.rows.forEach(row =>
         {
-    
-            btn.addEventListener('click', e =>      
+            // utiliza o spread e faz o forEach percorrendo os botões encontrados
+            [...row.querySelectorAll('.btn')].forEach(btn =>
             {
 
-                // executa o evento na tela que utiliza o componente
-                // this.options.listeners.beforeUpdateClick(e);
-                this.fireEvent('beforeUpdateClick', [e]);
-        
-                // retorna os dados do 'tr' clicado
-                let data = this.getTrData(e);
-
-                // percorre os campos do json         
-                for (let name in data)
+                btn.addEventListener('click', e =>
                 {
+                
+                    if (e.target.classList.contains(this.options.btnUpdate))
+                    {
+                        this.btnUpdateClick(e);
+                    }
+                    else if (e.target.classList.contains(this.options.btnDelete))
+                    {
+                        this.btnDeleteClick(e);
+                    }
+                    else
+                    {
+                        this.fireEvent('buttonClick', [e.target, this.getTrData(e), e])
+                    }
 
-                    // executa o evento
-                    this.options.onUpdateLoad(this.formUpdate, name, data);
-                                    
-                }    
+                });                   
 
-                // executa o evento na tela que utiliza o componente
-                // this.options.listeners.afterUpdateClick(e);
-                this.fireEvent('afterUpdateClick', [e]);
-
-        
             });
-    
         });
     
-        // busca todos os botões de 'excluir' e define o evento 
-        // converte em array
-        [...document.querySelectorAll(this.options.btnDelete)].forEach(btn =>
-        {
-    
-            btn.addEventListener('click', e =>      
-            {
-
-                this.fireEvent("beforeDeleteClick");
-        
-                // procura no array que tem a lista
-                // de elementos pais do item atual
-                // retorna o elemento pai que seja uma 'TR'
-                let data = this.getTrData(e);
-        
-                console.log("registro para exclusão", data.id);
-                
-                // pede confirmação ao usúario
-                if (confirm(eval('`' + this.options.deleteMsg + '`')))
-                {
-
-                    console.log("exclusão: ", this.options.deleteUrl);
-        
-                    // faz a chamada 'ajax' para execução do comando no servidor
-                    fetch(eval('`' + this.options.deleteUrl + '`'),
-                    {
-                        method: 'DELETE'
-                    })
-                    .then(response => response.json())
-                    .then(json => 
-                    {
-                        // excuta o evento
-                        this.fireEvent("afterDeleteClick");                    
-                    });
-
-                }
-                    
-            });
-        
-        });    
-
     }
 
 }
