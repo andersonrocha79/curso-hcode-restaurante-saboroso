@@ -1,4 +1,5 @@
-var conn = require("./db");
+var conn       = require("./db");
+var Pagination = require("./pagination");
 
 module.exports =
 {
@@ -18,27 +19,17 @@ module.exports =
 
     },
 
-    getReservations()
+    getReservations(page)
     {
 
-        return new Promise((resolve, reject) =>
-        {
+        // se não informar página, indica que a página é 1
+        if (!page) page = 1;
 
-            conn.query("SELECT * FROM tb_reservations ORDER BY date DESC, time DESC", (err, results) =>
-            {
-         
-               if (err)
-               {
-                  reject(err);
-               }
-               else
-               {
-                  resolve(results);
-               }
-         
-            });            
+        // o parâmetro SQL_CALC_FOUND_ROWS indica que deve armazenar no servidor a quantidade de registros existentes no comando (sem o limit)
+        let pag = new Pagination("SELECT SQL_CALC_FOUND_ROWS * FROM tb_reservations ORDER BY name LIMIT ?, ?");
 
-        });
+        return pag.getPage(page);
+            
     },
 
     save(fields)
