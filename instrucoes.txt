@@ -61,3 +61,12 @@ npm install moment --save
 instalando o chart.JS via bower na pasta 'public/admin'
 bower install chart.js --save
 documentação: https://www.chartjs.org/docs/latest/
+
+para instalar o Socket, primeiro removemos o 'express' para instalar uma versão mais recente.
+  npm uninstall express --save
+instalando a versão exigida pelo Socket.io
+  npm install --save express@4.15.2
+
+instalando o Socket.io
+https://socket.io/get-started/chat/
+  npm install socket.io --save
