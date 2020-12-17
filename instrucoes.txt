@@ -57,3 +57,7 @@ npm install formidable --save
 
 instalar o módulo para formatação de datas
 npm install moment --save
+
+instalando o chart.JS via bower na pasta 'public/admin'
+bower install chart.js --save
+documentação: https://www.chartjs.org/docs/latest/

@@ -1,5 +1,6 @@
 var conn       = require("./db");
 var Pagination = require("./pagination");
+var moment     = require("moment");
 
 module.exports =
 {
@@ -19,16 +20,43 @@ module.exports =
 
     },
 
-    getReservations(page)
+    getReservations(req)
     {
 
-        // se não informar página, indica que a página é 1
-        if (!page) page = 1;
+        return new Promise((resolve, reject) =>
+        {
 
-        // o parâmetro SQL_CALC_FOUND_ROWS indica que deve armazenar no servidor a quantidade de registros existentes no comando (sem o limit)
-        let pag = new Pagination("SELECT SQL_CALC_FOUND_ROWS * FROM tb_reservations ORDER BY name LIMIT ?, ?");
+            let page    = req.query.page;
+            let dtStart = req.query.start;
+            let dtEnd   = req.query.end;
 
-        return pag.getPage(page);
+            // se não informar página, indica que a página é 1
+            if (!page) page = 1;
+
+            // verifica se o periodo de datas foi informado
+            let params = [];
+
+            if (dtStart && dtEnd)
+            {
+                params.push(dtStart, dtEnd);
+            }
+
+            // o parâmetro SQL_CALC_FOUND_ROWS indica que deve armazenar no servidor a quantidade de registros existentes no comando (sem o limit)
+            let pag = new Pagination(`SELECT SQL_CALC_FOUND_ROWS * FROM tb_reservations 
+                                    ${(dtStart && dtEnd) ? 'WHERE date BETWEEN ? AND ?' : ''} 
+                                    ORDER BY name LIMIT ?, ?`,
+                                    params);
+
+            pag.getPage(page).then(data =>
+            {
+                resolve({data, 
+                         links : pag.getNavigation(req.query)
+                        });
+            });
+                     
+        });
+
+
             
     },
 
@@ -117,7 +145,54 @@ module.exports =
 
         });
 
+    },
+
+    getChart(req)
+    {
+        
+        return new Promise((resolve, reject) =>
+        {
+
+            conn.query(
+            `            
+                SELECT
+                   CONCAT(YEAR(date), '-', MONTH(date)) AS date,
+                   COUNT(*) AS total,
+                   SUM(people) / COUNT(*) AS avg_people
+                FROM  tb_reservations
+                WHERE date BETWEEN ? AND ?
+                GROUP BY YEAR(date), MONTH(date)
+                ORDER BY YEAR(date), MONTH(date);
+            `,
+            [req.query.start, req.query.end],
+            (err, results)=>
+            {
+                if (err)
+                {
+                    reject(err);
+                }
+                else
+                {
+
+                    let months = [];
+                    let values = [];
+
+                    results.forEach(row =>
+                    {
+                       months.push(moment(row.date).format('MMM YYYY'));
+                       values.push(row.total);
+                    });
+
+                    resolve({months, values});
+
+                }
+            });
+                     
+        });        
+
     }
+
+
 
 
 }

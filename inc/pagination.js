@@ -70,6 +70,84 @@ class Pagination
         return this.totalPages;
     }
 
+    getNavigation(params)
+    {
+
+        let limitPagesNav = 5;
+        let links         = [];
+        let nrStart       = 0;
+        let nrEnd         = 0; 
+
+        if (this.getTotalPages() < limitPagesNav)
+        {
+            limitPagesNav = this.getTotalPages();
+        }
+
+        // verifica se estamos nas primeiras páginas
+        if ((this.getCurrentPage() - parseInt(limitPagesNav/2)) < 1)
+        {
+            nrStart = 1;
+            nrEnd   = limitPagesNav;
+        }
+        // verifica se está chegando nas últimas páginas
+        else if ((this.getCurrentPage() + parseInt(limitPagesNav/2)) > this.getTotalPages())
+        {
+            nrStart = this.getTotalPages() - limitPagesNav;
+            nrEnd   = this.getTotalPages();
+        }
+        // está no meio da navegação
+        else
+        {
+            nrStart = this.getCurrentPage() - parseInt(limitPagesNav/2);
+            nrEnd   = this.getCurrentPage() + parseInt(limitPagesNav/2);
+        }
+
+        // verifica se tem botao anterior
+        if (this.getCurrentPage() > 1)
+        {
+            links.push({
+                text: '<',
+                href: '?' + this.getQueryString(Object.assign({}, params, {page: this.getCurrentPage()-1}))
+            });
+        }
+
+        // inclui os links para os botões da navegação
+        for (let x = nrStart; x <= nrEnd; x++)
+        {
+            links.push({
+                text: x,
+                href: '?' + this.getQueryString(Object.assign({}, params, {page:x})),
+                active: (x === this.getCurrentPage())
+            });
+        }
+
+        // verifica se tem botao próximo
+        if (this.getCurrentPage() < this.getTotalPages())
+        {
+            links.push({
+                text: '>',
+                href: '?' + this.getQueryString(Object.assign({}, params, {page: this.getCurrentPage()+1}))
+            });
+        }        
+
+        return links;
+
+    }
+
+    getQueryString(params)
+    {
+
+        let queryString = [];
+
+        for (let name in params)
+        {
+            queryString.push(`${name}=${params[name]}`);
+        }
+
+        return queryString.join("&");
+
+    }
+
 
 }
 
